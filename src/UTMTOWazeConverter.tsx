@@ -22,12 +22,19 @@ const UTMToWazeConverter = () => {
       Number(utmCoordinates.easting_prefix + easting + "0"),
       Number(utmCoordinates.northing_prefix + northing + "0"),
     ];
-    const latLng = proj4(epsgCode, "EPSG:4326", utmCoords);
-
-    return {
-      lat: latLng[1],
-      lng: latLng[0],
-    };
+    try {
+      const latLng = proj4(epsgCode, "EPSG:4326", utmCoords);
+      return {
+        lat: latLng[1],
+        lng: latLng[0],
+      };
+    } catch (error) {
+      alert(
+        `Erreur lors de la conversion des coordonnées UTM en coordonnées WGS84, ${
+          (error as Error).message
+        }`
+      );
+    }
   };
 
   const convertUTMtoWaze = () => {
@@ -37,6 +44,7 @@ const UTMToWazeConverter = () => {
     }
 
     const coords = utmToLatLng(utmCoordinates, easting, northing);
+    if (!coords) return;
     const link = `https://www.waze.com/ul?ll=${coords.lat},${coords.lng}&navigate=yes`;
 
     setWazeLink(link);

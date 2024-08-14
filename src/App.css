@@ -21,6 +21,12 @@ h2 {
   width: 100%;
 }
 
+.flex-container > div {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
 .flex-container > div > input {
   background-color: #f1f1f1;
 }
@@ -64,4 +70,13 @@ button {
 #result {
   margin-top: 20px;
   text-align: center;
+}
+
+@media only screen and (max-width: 600px) {
+  .flex-container {
+    flex-direction: column;
+  }
+  .utm-inputs {
+    flex-direction: column;
+  }
 }
