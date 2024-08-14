@@ -5,6 +5,7 @@
   "type": "module",
   "homepage": "https://ehautefa.github.io/utm_to_waze",
   "scripts": {
+    "predeploy": "rm -rf dist && npm run build",
     "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc -b && vite build",
