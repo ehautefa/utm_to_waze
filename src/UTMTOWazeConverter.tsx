@@ -1,6 +1,7 @@
 import proj4 from "proj4";
 import { useState } from "react";
 import useUserCoordinate, { UtmCoordinates } from "./useUserCoordinate";
+import LinkWithCopy from "./Link";
 
 // Définir la projection UTM pour la zone 31N
 proj4.defs("EPSG:32631", "+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs");
@@ -30,6 +31,7 @@ const UTMToWazeConverter = () => {
         lng: latLng[0],
       };
     } catch (error) {
+      console.error(error);
       alert(
         `Erreur lors de la conversion des coordonnées UTM en coordonnées WGS84, ${
           (error as Error).message
@@ -102,15 +104,7 @@ const UTMToWazeConverter = () => {
         />
       </div>
       <button onClick={convertUTMtoWaze}>Convertir en lien Waze</button>
-      {wazeLink && (
-        <div id="result" style={{ marginTop: "20px" }}>
-          <p>
-            <a href={wazeLink} target="_blank" rel="noopener noreferrer">
-              Lien waze
-            </a>
-          </p>
-        </div>
-      )}
+      {wazeLink && <LinkWithCopy link={wazeLink} />}
       <div className="gavotte">
         Cette solution vous est proposé par
         <img src="Gavottes.png" alt="Gavottes" height={100} />
