@@ -37,70 +37,33 @@ const UTMToWazeConverter = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "600px",
-        margin: "auto",
-        padding: "20px",
-        border: "1px solid #ccc",
-        borderRadius: "10px",
-      }}
-    >
+    <div className="container">
       <h2>Convertisseur de coordonnées UTM vers lien Waze</h2>
       <input
         type="text"
         value={zone}
         onChange={(e) => setZone(e.target.value)}
         placeholder="Zone UTM (ex: 33T)"
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginTop: "10px",
-          marginBottom: "10px",
-        }}
       />
       <input
         type="text"
         value={easting}
         onChange={(e) => setEasting(e.target.value)}
         placeholder="Easting (ex: 500000)"
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginTop: "10px",
-          marginBottom: "10px",
-        }}
       />
       <input
         type="text"
         value={northing}
         onChange={(e) => setNorthing(e.target.value)}
         placeholder="Northing (ex: 4649776)"
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginTop: "10px",
-          marginBottom: "10px",
-        }}
       />
-      <button
-        onClick={convertUTMtoWaze}
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginTop: "10px",
-          marginBottom: "10px",
-        }}
-      >
-        Convertir en lien Waze
-      </button>
+      <button onClick={convertUTMtoWaze}>Convertir en lien Waze</button>
 
       {wazeLink && (
         <div id="result" style={{ marginTop: "20px" }}>
           <p>
-            Lien Waze:{" "}
             <a href={wazeLink} target="_blank" rel="noopener noreferrer">
-              {wazeLink}
+              Lien waze
             </a>
           </p>
         </div>
