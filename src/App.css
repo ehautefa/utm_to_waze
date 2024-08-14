@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   margin: 50px;
-  background: url("public/mongolfiere.jpeg") no-repeat center center fixed;
+  background: url("/mongolfiere.jpeg") no-repeat center center fixed;
   color: #424242;
 }
 
