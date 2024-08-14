@@ -33,7 +33,7 @@ button {
   padding: 10px;
   margin-top: 10px;
   margin-bottom: 10px;
-  pointer: cursor;
+  cursor: pointer;
   border-radius: 100px;
   font-size: 15px;
   height: 40px;
