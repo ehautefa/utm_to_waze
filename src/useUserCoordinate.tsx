@@ -1,5 +1,5 @@
 import proj4 from "proj4";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export type UtmCoordinates = {
   easting_prefix: number | null;
@@ -10,9 +10,9 @@ export type UtmCoordinates = {
 
 export default function useUserCoordinate() {
   const [utmCoordinates, setUtmCoordinates] = useState<UtmCoordinates>({
-    easting_prefix: null,
-    northing_prefix: null,
-    zone: null,
+    easting_prefix: Number(localStorage.getItem("easting_prefix")) || null,
+    northing_prefix: Number(localStorage.getItem("northing_prefix")) || null,
+    zone: Number(localStorage.getItem("zone")) || null,
     hemisphere: null,
   });
 
@@ -53,5 +53,34 @@ export default function useUserCoordinate() {
     return Math.floor((longitude + 180) / 6) + 1;
   }
 
-  return { utmCoordinates, setUtmCoordinates };
+  const setEastingPrefix = useCallback(
+    (easting_prefix: number | null) => {
+      localStorage.setItem("easting_prefix", String(easting_prefix));
+      setUtmCoordinates((prev) => ({ ...prev, easting_prefix }));
+    },
+    [setUtmCoordinates]
+  );
+
+  const setNorthingPrefix = useCallback(
+    (northing_prefix: number | null) => {
+      localStorage.setItem("northing_prefix", String(northing_prefix));
+      setUtmCoordinates((prev) => ({ ...prev, northing_prefix }));
+    },
+    [setUtmCoordinates]
+  );
+
+  const setZone = useCallback(
+    (zone: number | null) => {
+      localStorage.setItem("zone", zone ? String(zone) : "");
+      setUtmCoordinates((prev) => ({ ...prev, zone }));
+    },
+    [setUtmCoordinates]
+  );
+
+  return {
+    utmCoordinates,
+    setEastingPrefix,
+    setNorthingPrefix,
+    setZone,
+  };
 }

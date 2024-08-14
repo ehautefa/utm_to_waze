@@ -6,7 +6,8 @@ import useUserCoordinate, { UtmCoordinates } from "./useUserCoordinate";
 proj4.defs("EPSG:32631", "+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs");
 
 const UTMToWazeConverter = () => {
-  const { utmCoordinates, setUtmCoordinates } = useUserCoordinate();
+  const { utmCoordinates, setEastingPrefix, setNorthingPrefix, setZone } =
+    useUserCoordinate();
   const { easting_prefix, northing_prefix, zone } = utmCoordinates;
   const [easting, setEasting] = useState<string>("");
   const [northing, setNorthing] = useState<string>("");
@@ -59,12 +60,7 @@ const UTMToWazeConverter = () => {
           <input
             type="text"
             value={zone ? String(zone) : ""}
-            onChange={(e) =>
-              setUtmCoordinates((prev) => ({
-                ...prev,
-                zone: Number(e.target.value),
-              }))
-            }
+            onChange={(e) => setZone(Number(e.target.value))}
             placeholder="Zone UTM (ex: 33)"
           />
         </div>
@@ -73,12 +69,7 @@ const UTMToWazeConverter = () => {
           <input
             type="text"
             value={easting_prefix ? String(easting_prefix) : ""}
-            onChange={(e) =>
-              setUtmCoordinates((prev) => ({
-                ...prev,
-                easting_prefix: Number(e.target.value),
-              }))
-            }
+            onChange={(e) => setEastingPrefix(Number(e.target.value))}
             placeholder="Easting prefix (ex: 4)"
           />
         </div>
@@ -87,12 +78,7 @@ const UTMToWazeConverter = () => {
           <input
             type="text"
             value={northing_prefix ? String(northing_prefix) : ""}
-            onChange={(e) =>
-              setUtmCoordinates((prev) => ({
-                ...prev,
-                northing_prefix: Number(e.target.value),
-              }))
-            }
+            onChange={(e) => setNorthingPrefix(Number(e.target.value))}
             placeholder="Northing prefix (ex: 55)"
           />
         </div>
