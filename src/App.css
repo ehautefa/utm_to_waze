@@ -1,6 +1,8 @@
 body {
   font-family: Arial, sans-serif;
   margin: 50px;
+  background: url("public/mongolfiere.jpeg") no-repeat center center fixed;
+  color: #424242;
 }
 
 h2 {
@@ -13,6 +15,7 @@ h2 {
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .flex-container {
@@ -72,11 +75,29 @@ button {
   text-align: center;
 }
 
+.gavotte {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  font-style: italic;
+  text-align: center;
+}
+
 @media only screen and (max-width: 600px) {
   .flex-container {
     flex-direction: column;
   }
   .utm-inputs {
     flex-direction: column;
+  }
+
+  .gavotte {
+    display: none;
+  }
+
+  body {
+    margin: 20px;
   }
 }

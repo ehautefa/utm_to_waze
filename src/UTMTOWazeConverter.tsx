@@ -102,7 +102,6 @@ const UTMToWazeConverter = () => {
         />
       </div>
       <button onClick={convertUTMtoWaze}>Convertir en lien Waze</button>
-
       {wazeLink && (
         <div id="result" style={{ marginTop: "20px" }}>
           <p>
@@ -112,6 +111,10 @@ const UTMToWazeConverter = () => {
           </p>
         </div>
       )}
+      <div className="gavotte">
+        Cette solution vous est proposé par
+        <img src="Gavottes.png" alt="Gavottes" height={100} />
+      </div>
     </div>
   );
 };
