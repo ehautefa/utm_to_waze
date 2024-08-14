@@ -1,21 +1,27 @@
 import proj4 from "proj4";
 import { useState } from "react";
+import useUserCoordinate, { UtmCoordinates } from "./useUserCoordinate";
 
 // Définir la projection UTM pour la zone 31N
 proj4.defs("EPSG:32631", "+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs");
 
 const UTMToWazeConverter = () => {
-  const [zone, setZone] = useState<string>("31N");
-  const [easting, setEasting] = useState<string>("485191");
-  const [northing, setNorthing] = useState<string>("5529491");
+  const { utmCoordinates, setUtmCoordinates } = useUserCoordinate();
+  const { easting_prefix, northing_prefix, zone } = utmCoordinates;
+  const [easting, setEasting] = useState<string>("");
+  const [northing, setNorthing] = useState<string>("");
   const [wazeLink, setWazeLink] = useState<string>("");
 
-  const utmToLatLng = (zone: string, easting: string, northing: string) => {
-    const zoneNumber = zone.substring(0, zone.length - 1); // Extrait la partie numérique de la zone UTM
-    // const hemisphere = zone[zone.length - 1].toUpperCase(); // N ou S pour hémisphère Nord ou Sud
-    const epsgCode = `EPSG:326${zoneNumber}`; // Système de coordonnées UTM pour l'hémisphère Nord
-
-    const utmCoords = [Number(easting), Number(northing)];
+  const utmToLatLng = (
+    utmCoordinates: UtmCoordinates,
+    easting: string,
+    northing: string
+  ) => {
+    const epsgCode = `EPSG:326${utmCoordinates.zone}`; // Système de coordonnées UTM pour l'hémisphère Nord
+    const utmCoords = [
+      Number(utmCoordinates.easting_prefix + easting + "0"),
+      Number(utmCoordinates.northing_prefix + northing + "0"),
+    ];
     const latLng = proj4(epsgCode, "EPSG:4326", utmCoords);
 
     return {
@@ -25,12 +31,12 @@ const UTMToWazeConverter = () => {
   };
 
   const convertUTMtoWaze = () => {
-    if (!zone || !easting || !northing) {
+    if (!utmCoordinates || !easting || !northing) {
       alert("Veuillez entrer toutes les coordonnées UTM.");
       return;
     }
 
-    const coords = utmToLatLng(zone, easting, northing);
+    const coords = utmToLatLng(utmCoordinates, easting, northing);
     const link = `https://www.waze.com/ul?ll=${coords.lat},${coords.lng}&navigate=yes`;
 
     setWazeLink(link);
@@ -39,24 +45,68 @@ const UTMToWazeConverter = () => {
   return (
     <div className="container">
       <h2>Convertisseur de coordonnées UTM vers lien Waze</h2>
-      <input
-        type="text"
-        value={zone}
-        onChange={(e) => setZone(e.target.value)}
-        placeholder="Zone UTM (ex: 33T)"
-      />
-      <input
-        type="text"
-        value={easting}
-        onChange={(e) => setEasting(e.target.value)}
-        placeholder="Easting (ex: 500000)"
-      />
-      <input
-        type="text"
-        value={northing}
-        onChange={(e) => setNorthing(e.target.value)}
-        placeholder="Northing (ex: 4649776)"
-      />
+      <div className="flex-container">
+        <div>
+          <label>Zone</label>
+          <input
+            type="text"
+            value={zone ? String(zone) : ""}
+            onChange={(e) =>
+              setUtmCoordinates((prev) => ({
+                ...prev,
+                zone: Number(e.target.value),
+              }))
+            }
+            placeholder="Zone UTM (ex: 33)"
+          />
+        </div>
+        <div>
+          <label>Easting prefix</label>
+          <input
+            type="text"
+            value={easting_prefix ? String(easting_prefix) : ""}
+            onChange={(e) =>
+              setUtmCoordinates((prev) => ({
+                ...prev,
+                easting_prefix: Number(e.target.value),
+              }))
+            }
+            placeholder="Easting prefix (ex: 4)"
+          />
+        </div>
+        <div>
+          <label>Northing prefix</label>
+          <input
+            type="text"
+            value={northing_prefix ? String(northing_prefix) : ""}
+            onChange={(e) =>
+              setUtmCoordinates((prev) => ({
+                ...prev,
+                northing_prefix: Number(e.target.value),
+              }))
+            }
+            placeholder="Northing prefix (ex: 55)"
+          />
+        </div>
+      </div>
+      <div className="utm-inputs">
+        <input
+          type="text"
+          value={easting}
+          minLength={4}
+          maxLength={4}
+          onChange={(e) => setEasting(e.target.value)}
+          placeholder="Easting (ex: 0450)"
+        />
+        <input
+          type="text"
+          value={northing}
+          minLength={4}
+          maxLength={4}
+          onChange={(e) => setNorthing(e.target.value)}
+          placeholder="Northing (ex: 8912)"
+        />
+      </div>
       <button onClick={convertUTMtoWaze}>Convertir en lien Waze</button>
 
       {wazeLink && (

@@ -1,5 +1,5 @@
 import "./App.css";
-import UTMToWazeConverter from "./UTMTOWazeConverter";
+import UTMToWazeConverter from "./UTMToWazeConverter";
 
 function App() {
   return (

@@ -15,8 +15,29 @@ h2 {
   border-radius: 10px;
 }
 
+.flex-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.flex-container > div > input {
+  background-color: #f1f1f1;
+}
+
+.utm-inputs {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  flex-direction: row;
+}
+
+.utm-inputs > input {
+  flex: 1;
+  border: 2px solid #aaa;
+}
+
 input {
-  width: 95%;
   padding: 10px;
   margin-top: 10px;
   margin-bottom: 10px;
