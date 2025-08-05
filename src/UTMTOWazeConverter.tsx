@@ -8,6 +8,8 @@ interface Waypoint {
   easting: string;
   northing: string;
   wazeLink: string;
+  easting_prefix: number;
+  northing_prefix: number;
 }
 
 const UTMToWazeConverter = () => {
@@ -23,6 +25,15 @@ const UTMToWazeConverter = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingWaypoint, setEditingWaypoint] = useState<Waypoint | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    easting: "",
+    northing: "",
+    easting_prefix: 0,
+    northing_prefix: 0,
+  });
 
   // Load waypoints from localStorage on component mount
   useEffect(() => {
@@ -91,6 +102,9 @@ const UTMToWazeConverter = () => {
       );
       return;
     }
+    if (!easting_prefix || !northing_prefix) {
+      alert("Should define zone prefix");
+    }
 
     const coords = utmToLatLng(
       utmCoordinates,
@@ -105,6 +119,8 @@ const UTMToWazeConverter = () => {
       name: newWaypoint.name,
       easting: newWaypoint.easting,
       northing: newWaypoint.northing,
+      easting_prefix: easting_prefix || 0,
+      northing_prefix: northing_prefix || 0,
       wazeLink,
     };
 
@@ -123,6 +139,69 @@ const UTMToWazeConverter = () => {
 
   const removeWaypoint = (id: string) => {
     setWaypoints(waypoints.filter((wp) => wp.id !== id));
+  };
+
+  const editWaypoint = (waypoint: Waypoint) => {
+    setEditingWaypoint(waypoint);
+    setEditForm({
+      name: waypoint.name,
+      easting: waypoint.easting,
+      northing: waypoint.northing,
+      easting_prefix: waypoint.easting_prefix,
+      northing_prefix: waypoint.northing_prefix,
+    });
+    setShowEditModal(true);
+  };
+
+  const updateWaypoint = () => {
+    if (
+      !editForm.name ||
+      !editForm.easting ||
+      !editForm.northing ||
+      !editingWaypoint
+    ) {
+      alert("Veuillez entrer toutes les informations du waypoint.");
+      return;
+    }
+
+    const coords = utmToLatLng(
+      {
+        ...utmCoordinates,
+        easting_prefix: editForm.easting_prefix,
+        northing_prefix: editForm.northing_prefix,
+      },
+      editForm.easting,
+      editForm.northing
+    );
+    if (!coords) return;
+
+    const wazeLink = `https://www.waze.com/ul?ll=${coords.lat},${coords.lng}&navigate=yes`;
+
+    const updatedWaypoint: Waypoint = {
+      ...editingWaypoint,
+      name: editForm.name,
+      easting: editForm.easting,
+      northing: editForm.northing,
+      easting_prefix: editForm.easting_prefix,
+      northing_prefix: editForm.northing_prefix,
+      wazeLink,
+    };
+
+    setWaypoints(
+      waypoints.map((wp) =>
+        wp.id === editingWaypoint.id ? updatedWaypoint : wp
+      )
+    );
+
+    setShowEditModal(false);
+    setEditingWaypoint(null);
+    setEditForm({
+      name: "",
+      easting: "",
+      northing: "",
+      easting_prefix: 0,
+      northing_prefix: 0,
+    });
   };
 
   const openInWaze = (wazeLink: string) => {
@@ -154,6 +233,29 @@ const UTMToWazeConverter = () => {
         <h2>UTM vers Waze</h2>
         <div className="main-actions">
           <button
+            onClick={() => setShowAddModal(!showAddModal)}
+            className="add-waypoint-btn"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Add Waypoint Modal */}
+      {showAddModal && (
+        <div className="settings-dropdown">
+          <h3>Add a waypoint</h3>
+          <button
             className="add-btn"
             onClick={() => setShowSettings(!showSettings)}
           >
@@ -178,71 +280,47 @@ const UTMToWazeConverter = () => {
               </g>
             </svg>
           </button>
-          <button
-            onClick={() => setShowAddModal(!showAddModal)}
-            className="add-waypoint-btn"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Settings Dropdown */}
-      {showSettings && (
-        <div className="settings-dropdown">
-          <h3>Paramètres UTM</h3>
-          <div className="settings-inputs">
-            <div>
-              <label>Zone UTM</label>
-              <input
-                type="text"
-                value={zone ? String(zone) : ""}
-                onChange={(e) => setZone(Number(e.target.value))}
-                placeholder="Zone UTM (ex: 31)"
-              />
+          {/* Settings Dropdown */}
+          {showSettings && (
+            <div className="settings-dropdown">
+              <h3>Paramètres UTM</h3>
+              <div className="settings-inputs">
+                <div>
+                  <label>Zone UTM</label>
+                  <input
+                    type="text"
+                    value={zone ? String(zone) : ""}
+                    onChange={(e) => setZone(Number(e.target.value))}
+                    placeholder="Zone UTM (ex: 31)"
+                  />
+                </div>
+                <div>
+                  <label>Easting prefix</label>
+                  <input
+                    type="text"
+                    value={easting_prefix ? String(easting_prefix) : ""}
+                    onChange={(e) => setEastingPrefix(Number(e.target.value))}
+                    placeholder="Easting prefix (ex: 4)"
+                  />
+                </div>
+                <div>
+                  <label>Northing prefix</label>
+                  <input
+                    type="text"
+                    value={northing_prefix ? String(northing_prefix) : ""}
+                    onChange={(e) => setNorthingPrefix(Number(e.target.value))}
+                    placeholder="Northing prefix (ex: 55)"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="close-settings-btn"
+              >
+                Fermer
+              </button>
             </div>
-            <div>
-              <label>Easting prefix</label>
-              <input
-                type="text"
-                value={easting_prefix ? String(easting_prefix) : ""}
-                onChange={(e) => setEastingPrefix(Number(e.target.value))}
-                placeholder="Easting prefix (ex: 4)"
-              />
-            </div>
-            <div>
-              <label>Northing prefix</label>
-              <input
-                type="text"
-                value={northing_prefix ? String(northing_prefix) : ""}
-                onChange={(e) => setNorthingPrefix(Number(e.target.value))}
-                placeholder="Northing prefix (ex: 55)"
-              />
-            </div>
-          </div>
-          <button
-            onClick={() => setShowSettings(false)}
-            className="close-settings-btn"
-          >
-            Fermer
-          </button>
-        </div>
-      )}
-
-      {/* Add Waypoint Modal */}
-      {showAddModal && (
-        <div className="settings-dropdown">
-          <h3>Add a waypoint</h3>
+          )}
           <div className="settings-inputs">
             <div className="waypoint-inputs">
               <input
@@ -283,6 +361,88 @@ const UTMToWazeConverter = () => {
               </button>
               <button onClick={addWaypoint} className="confirm-btn">
                 Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Waypoint Modal */}
+      {showEditModal && editingWaypoint && (
+        <div className="settings-dropdown">
+          <h3>Modifier le waypoint</h3>
+          <div className="settings-inputs">
+            <div className="waypoint-inputs">
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, name: e.target.value })
+                }
+                placeholder="Nom du waypoint"
+              />
+              <input
+                type="text"
+                value={editForm.easting_prefix}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    easting_prefix: Number(e.target.value),
+                  })
+                }
+                placeholder="Easting prefix (ex: 4)"
+              />
+              <input
+                type="text"
+                value={editForm.easting}
+                minLength={4}
+                maxLength={4}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, easting: e.target.value })
+                }
+                placeholder="Easting (ex: 0450)"
+              />
+              <input
+                type="text"
+                value={editForm.northing_prefix}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    northing_prefix: Number(e.target.value),
+                  })
+                }
+                placeholder="Northing prefix (ex: 55)"
+              />
+              <input
+                type="text"
+                value={editForm.northing}
+                minLength={4}
+                maxLength={4}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, northing: e.target.value })
+                }
+                placeholder="Northing (ex: 8912)"
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingWaypoint(null);
+                  setEditForm({
+                    name: "",
+                    easting: "",
+                    northing: "",
+                    easting_prefix: 0,
+                    northing_prefix: 0,
+                  });
+                }}
+                className="cancel-btn"
+              >
+                Annuler
+              </button>
+              <button onClick={updateWaypoint} className="confirm-btn">
+                Mettre à jour
               </button>
             </div>
           </div>
@@ -333,12 +493,18 @@ const UTMToWazeConverter = () => {
               <div className="waypoint-info">
                 <strong>{waypoint.name}</strong>
                 <span>
-                  E: {easting_prefix}
-                  {waypoint.easting}0 N: {northing_prefix}
+                  E: {waypoint.easting_prefix}
+                  {waypoint.easting}0 N: {waypoint.northing_prefix}
                   {waypoint.northing}0
                 </span>
               </div>
               <div className="waypoint-actions">
+                <button
+                  className="copy-btn"
+                  onClick={() => editWaypoint(waypoint)}
+                >
+                  Edit
+                </button>
                 <button
                   onClick={() => removeWaypoint(waypoint.id)}
                   className="remove-btn"
