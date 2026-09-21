@@ -2,12 +2,16 @@ import proj4 from "proj4";
 import { useEffect, useState } from "react";
 import useUserCoordinate, { UtmCoordinates } from "./useUserCoordinate";
 
+type MapProvider = "waze" | "googlemaps";
+
 interface Waypoint {
   id: string;
   name: string;
   easting: string;
   northing: string;
   wazeLink: string;
+  lat: number;
+  lng: number;
   easting_prefix: number;
   northing_prefix: number;
 }
@@ -17,6 +21,9 @@ const UTMToWazeConverter = () => {
     useUserCoordinate();
   const { easting_prefix, northing_prefix, zone } = utmCoordinates;
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [mapProvider, setMapProvider] = useState<MapProvider>(
+    (localStorage.getItem("map-provider") as MapProvider) || "waze"
+  );
   const [newWaypoint, setNewWaypoint] = useState({
     name: "",
     easting: "",
@@ -40,7 +47,18 @@ const UTMToWazeConverter = () => {
     const savedWaypoints = localStorage.getItem("utm-waypoints");
     if (savedWaypoints) {
       try {
-        setWaypoints(JSON.parse(savedWaypoints));
+        const parsedWaypoints: Waypoint[] = JSON.parse(savedWaypoints);
+        // Backfill lat/lng for waypoints saved before Google Maps support was added
+        const migratedWaypoints = parsedWaypoints.map((wp) => {
+          if (wp.lat != null && wp.lng != null) return wp;
+          const match = wp.wazeLink?.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+          return {
+            ...wp,
+            lat: match ? Number(match[1]) : 0,
+            lng: match ? Number(match[2]) : 0,
+          };
+        });
+        setWaypoints(migratedWaypoints);
       } catch (error) {
         console.error("Error parsing saved waypoints:", error);
       }
@@ -54,6 +72,11 @@ const UTMToWazeConverter = () => {
       localStorage.setItem("utm-waypoints", JSON.stringify(waypoints));
     }
   }, [waypoints, isLoaded]);
+
+  // Persist the selected navigation app so it applies across the whole page
+  useEffect(() => {
+    localStorage.setItem("map-provider", mapProvider);
+  }, [mapProvider]);
 
   const utmToLatLng = (
     utmCoordinates: UtmCoordinates,
@@ -122,6 +145,8 @@ const UTMToWazeConverter = () => {
       easting_prefix: easting_prefix || 0,
       northing_prefix: northing_prefix || 0,
       wazeLink,
+      lat: coords.lat,
+      lng: coords.lng,
     };
 
     setWaypoints([...waypoints, waypoint]);
@@ -185,6 +210,8 @@ const UTMToWazeConverter = () => {
       easting_prefix: editForm.easting_prefix,
       northing_prefix: editForm.northing_prefix,
       wazeLink,
+      lat: coords.lat,
+      lng: coords.lng,
     };
 
     setWaypoints(
@@ -204,13 +231,20 @@ const UTMToWazeConverter = () => {
     });
   };
 
-  const openInWaze = (wazeLink: string) => {
-    window.open(wazeLink, "_blank");
+  const getNavigationLink = (waypoint: Waypoint) => {
+    if (mapProvider === "googlemaps") {
+      return `https://www.google.com/maps/dir/?api=1&destination=${waypoint.lat},${waypoint.lng}`;
+    }
+    return waypoint.wazeLink;
+  };
+
+  const openWaypoint = (waypoint: Waypoint) => {
+    window.open(getNavigationLink(waypoint), "_blank");
   };
 
   const copyAllLinks = () => {
     const linksText = waypoints
-      .map((wp) => `${wp.name}: ${wp.wazeLink}`)
+      .map((wp) => `${wp.name}: ${getNavigationLink(wp)}`)
       .join("\n");
 
     navigator.clipboard
@@ -224,7 +258,7 @@ const UTMToWazeConverter = () => {
   };
 
   const copyWaypointLink = (waypoint: Waypoint) => {
-    navigator.clipboard.writeText(waypoint.wazeLink);
+    navigator.clipboard.writeText(getNavigationLink(waypoint));
   };
 
   return (
@@ -249,6 +283,36 @@ const UTMToWazeConverter = () => {
             </svg>
           </button>
         </div>
+      </div>
+
+      {/* Navigation app switch */}
+      <div className="provider-toggle">
+        <button
+          type="button"
+          className={mapProvider === "waze" ? "active" : ""}
+          onClick={() => setMapProvider("waze")}
+        >
+          <img src="waze.png" alt="" height={16} />
+          Waze
+        </button>
+        <button
+          type="button"
+          className={mapProvider === "googlemaps" ? "active" : ""}
+          onClick={() => setMapProvider("googlemaps")}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          Google Maps
+        </button>
       </div>
 
       {/* Add Waypoint Modal */}
@@ -547,10 +611,26 @@ const UTMToWazeConverter = () => {
                   </svg>
                 </button>
                 <button
-                  onClick={() => openInWaze(waypoint.wazeLink)}
-                  className="waze-btn"
+                  onClick={() => openWaypoint(waypoint)}
+                  className={
+                    mapProvider === "googlemaps" ? "gmaps-btn" : "waze-btn"
+                  }
                 >
-                  <img src="waze.png" alt="Waze" height={16} />
+                  {mapProvider === "googlemaps" ? (
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                  ) : (
+                    <img src="waze.png" alt="Waze" height={16} />
+                  )}
                 </button>
               </div>
             </div>

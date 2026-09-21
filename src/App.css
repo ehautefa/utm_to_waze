@@ -127,6 +127,40 @@ h3 {
   padding: 0 15px;
 }
 
+/* Navigation app switch */
+.provider-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.provider-toggle button {
+  flex: 1;
+  width: auto;
+  height: 40px;
+  margin: 0;
+  background: transparent;
+  color: #555;
+  box-shadow: none;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.provider-toggle button:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: none;
+  box-shadow: none;
+}
+
+.provider-toggle button.active {
+  background: #ffffff;
+  color: #0099ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
 /* Main Actions */
 .main-actions {
   display: flex;
@@ -364,6 +398,22 @@ h3 {
 .waze-btn:hover {
   background: linear-gradient(135deg, #3367d6, #4c51bf);
   box-shadow: 0 3px 12px rgba(66, 133, 244, 0.4);
+}
+
+.gmaps-btn {
+  background: linear-gradient(135deg, #34a853, #4285f4);
+  font-size: 13px;
+  width: auto;
+  padding: 10px 16px;
+  height: auto;
+  border-radius: 10px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(52, 168, 83, 0.3);
+}
+
+.gmaps-btn:hover {
+  background: linear-gradient(135deg, #2d9249, #3367d6);
+  box-shadow: 0 3px 12px rgba(52, 168, 83, 0.4);
 }
 
 .remove-btn {
